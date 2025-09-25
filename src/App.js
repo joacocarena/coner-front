@@ -18,9 +18,10 @@ const _ = require('lodash');
 const host = 'http://localhost:5000'
 
 //helper:
-async function waitForAudioReady(url, attempts = 50, delayMs = 300) {
+async function waitForAudioReady(url, attempts = 60, delayMs = 300) {
   for (let i = 0; i < attempts; i++) {
     try {
+      // 1) HEAD
       const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
       if (r.ok) {
         const len = Number(r.headers.get('content-length') || '0');
@@ -28,7 +29,7 @@ async function waitForAudioReady(url, attempts = 50, delayMs = 300) {
           await new Promise(res => setTimeout(res, 150));
           const r2 = await fetch(url, {method: 'HEAD', cache: 'no-store'});
           const len2 = Number(r2.headers.get('content-length') || '0');
-          if (len2 >= len) return true;
+          if (len2 >= len && len2 > 0) return true;
         }
       }
     } catch {}
@@ -241,7 +242,8 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, ex
 
       filename = host + filename;
 
-      const audioUrl = `${host}${filename}?t=${Date.now()}`;
+      //const audioUrl = `${host}${filename}?t=${Date.now()}`;
+      const audioUrl = `${filename}?t=${Date.now()}`;
       setClips(newClips);
       if (await waitForAudioReady(audioUrl)) {
         setAudioSource(audioUrl);
